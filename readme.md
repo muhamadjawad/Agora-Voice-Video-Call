@@ -1,9 +1,16 @@
+## Summary
+
+The Code demonstrates the voice and video call using Agora service in react-native.
+
 ## Installation
+
+- clone the reposity .
+- then run the below command.
 
 ```
 npm install --save --legacy-peer-deps
 ```
 
-## Summary
+## Package Used .
 
-The Code demonstrates the voice and video call using Agora service in react-native.
+https://www.npmjs.com/package/react-native-agora
