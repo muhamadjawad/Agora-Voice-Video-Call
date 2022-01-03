@@ -23,24 +23,30 @@ import {
   COLOR_RED,
   COLOR_WHITE,
   COLOR_BLACK,
+  COLOR_PEACH,
 } from '../../Styles/ThemeConstants';
 import requestCameraAndAudioPermission from '../../Permission/Permission';
 // import CustomText from '../../../components/UISingleComp/CustomText';
-// import {ceil} from 'lodash';
+import {ceil} from 'lodash';
 import Draggable from 'react-native-draggable';
 import {COLOR_SECONDARY} from '../../Styles/ThemeConstants';
-import {userData} from '../../../userData';
+import {token, userData, appId} from '../../../userData';
+import CustomText from '../../Components/CustomText';
 
-const appId = '13658a0a10ff440bb3b6efb0de3e7d5a';
 const channelName = 'AgoraCall';
+let _engine = '';
 
 const VideoCall = props => {
-  var _engine = '';
   const argument = props.navigation.getParam('argument');
   const name = argument.name;
-  console.log(':argument===> ', argument);
-
+  // console.log(':argument===> ', argument);
   console.log('userData=====?', userData);
+
+  // const token = token; //
+  //>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+  const [audioMutedInfo, setAudioMutedInfo] = useState({});
+  const [videoMutedInfo, setVideoMutedInfo] = useState({});
 
   useEffect(() => {
     console.log('Permission');
@@ -122,13 +128,9 @@ const VideoCall = props => {
   };
 
   const startCall = async () => {
-    console.log(
-      'userData[name].token, channelName,',
-      userData[name].token,
-      channelName,
-    );
+    console.log(', channelName,', token, channelName);
     // Join Channel using  token and channel name
-    await _engine.joinChannel(userData[name].token, channelName, null, 1);
+    await _engine.joinChannel(token, channelName, null, name);
     // peerId =0 //no one joined u are the first
   };
 
@@ -137,38 +139,90 @@ const VideoCall = props => {
   const [muteVideo, setMuteVideo] = useState(false);
   const [mute, setMute] = useState(false);
   const [speaker, setSpeaker] = useState(false);
-  const [peerIds, setPeerIds] = useState([]);
+  const [peerIds, setPeerIds] = useState([4, 3]);
   const [initialsDone, setInitialsDone] = useState(false);
 
   const LocalView = () => {
     // console.log('infor mation===', await _engine.getUserInfoByUid(peerIds[-1]));
     return joinSucceed ? (
-      <View style={[styles.localView]}>
-        <RtcLocalView.SurfaceView
-          zOrderOnTop={true}
-          style={{flex: 1}}
-          channelId={channelName}
-          // renderMode={VideoRenderMode.Hidden}
-          children={() => {
-            return (
-              <View
-                style={{width: 50, height: 70, backgroundColor: COLOR_PRIMARY}}
-              />
-            );
-          }}
-        />
+      <View style={[styles.localView, {justifyContent: 'center'}]}>
+        {muteVideo === true ? (
+          <CustomText
+            label={'Your video is mute'}
+            textStyle={{
+              alignSelf: 'center',
+              fontStyle: 'italic',
+              justifyContent: 'center',
+            }}
+          />
+        ) : (
+          <RtcLocalView.SurfaceView
+            zOrderOnTop={true}
+            style={{flex: 1}}
+            channelId={channelName}
+            // renderMode={VideoRenderMode.Hidden}
+          />
+        )}
       </View>
     ) : null;
   };
+
+  useEffect(() => {
+    console.log(
+      'video info==>',
+      videoMutedInfo,
+      'audioMutedInfo==>',
+      audioMutedInfo,
+    );
+  }, [videoMutedInfo, audioMutedInfo]);
+
+  useEffect(() => {
+    let set = [...new Set(peerIds)];
+    if (set.length < peerIds.length) {
+      console.log('its not  same');
+      setPeerIds(set);
+    }
+
+    console.log('Peer ids ===>', peerIds);
+  });
+
+  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  const Camera = async () => {
+    await _engine.switchCamera();
+  };
+
+  const endCall = async () => {
+    await _engine.leaveChannel();
+
+    setPeerIds([]);
+    setJoinSucceed(false);
+    props.navigation.pop();
+  };
+
+  const onChangeMic = async mute => {
+    console.log('Mute', mute);
+    await _engine.muteLocalAudioStream(mute);
+  };
+
+  const onChangeVideo = async muteVideo => {
+    console.log('Muted video', muteVideo);
+    await _engine.muteLocalVideoStream(muteVideo);
+  };
+
+  const onChangeSpeaker = async speaker => {
+    await _engine.setEnableSpeakerphone(speaker);
+  };
+
+  //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6^^
 
   const RemoteVideos = () => {
     return (
       <View
         style={{
-          flex: 1,
+          // flex: 0.1,
           flexWrap: peerIds.length === 2 ? 'nowrap' : 'wrap',
           flexDirection: peerIds.length === 2 ? 'column' : 'row',
-          backgroundColor: COLOR_WHITE,
+          backgroundColor: COLOR_SECONDARY,
         }}>
         {peerIds.map((item, index) => {
           return (
@@ -182,15 +236,21 @@ const VideoCall = props => {
                       : '100%'
                     : '50%',
                 height: height(100 / ceil(peerIds.length / 2)),
-
                 borderWidth: 1,
                 borderColor: COLOR_MAROON,
+                justifyContent: 'center',
               }}>
-              {videoMutedInfo[item] === true ? (
+              {videoMutedInfo[item] === true ? ( //videoMutedInfo[item]
                 <Image
-                  source={{uri: userDataObject[item].image}}
+                  source={userData[item].image}
                   style={{
-                    flex: 1,
+                    resizeMode: 'contain',
+                    // flex: 1,
+                    // height: width(50),
+                    width: '60%',
+                    // borderRadius: width(50),
+                    alignSelf: 'center',
+                    // aspectRatio: 1,
                   }}
                 />
               ) : (
@@ -200,21 +260,23 @@ const VideoCall = props => {
                   }}
                   uid={item}
                   channelId={channelName}
+                  zOrderOnTop={false}
                   renderMode={VideoRenderMode.Hidden}
 
                   // zOrderMediaOverlay={true}
                 />
               )}
+
               <View
                 style={{
                   position: 'absolute',
-                  width: width(100),
+                  width: '98%',
                   // marginHorizontal: width(1),
-                  paddingHorizontal: width(2),
-                  top: height(1),
-                  // right: 0,
+                  // paddingHorizontal: width(1),
+                  top: height(0.3),
+                  // left: 0,
                   alignItems: 'center',
-
+                  alignSelf: 'center',
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                 }}>
@@ -227,7 +289,7 @@ const VideoCall = props => {
                   }}>
                   <CustomText
                     numberOfLines={1}
-                    label={userDataObject[item].username}
+                    label={userData[item].name}
                     textStyle={{color: COLOR_BLACK, fontSize: width(3)}}
                   />
                 </View>
@@ -235,7 +297,7 @@ const VideoCall = props => {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    flex: 0.15,
+                    // flex: 0.15,
                     // backgroundColor: COLOR_RED,
                     justifyContent: 'space-between',
                   }}>
@@ -245,16 +307,16 @@ const VideoCall = props => {
                       <Icon
                         type={'Ionicons'}
                         name={'mic-off-circle'}
-                        style={{color: COLOR_WHITE}}
+                        style={{color: COLOR_PRIMARY}}
                       />
                     ) : null}
                   </View>
                   <View>
                     {videoMutedInfo[item] === true ? (
                       <Icon
-                        type={'Feather'}
-                        name={'video-off'}
-                        style={{fontSize: width(6), color: COLOR_WHITE}}
+                        type={'MaterialIcons'}
+                        name={'videocam-off'}
+                        style={{fontSize: width(6), color: COLOR_PRIMARY}}
                       />
                     ) : null}
                   </View>
@@ -281,8 +343,8 @@ const VideoCall = props => {
         }}>
         <TouchableOpacity
           onPress={() => {
-            // setMuteVideo(!muteVideo);
-            // onChangeVideo(!muteVideo);
+            setMuteVideo(!muteVideo);
+            onChangeVideo(!muteVideo);
           }}
           style={[styles.BottomButtonStyle, {backgroundColor: COLOR_WHITE}]}>
           <Icon
@@ -292,7 +354,7 @@ const VideoCall = props => {
           />
         </TouchableOpacity>
         <TouchableOpacity
-          //   onPress={Camera}
+          onPress={Camera}
           style={[styles.BottomButtonStyle, {backgroundColor: COLOR_WHITE}]}>
           <Icon
             type={'Ionicons'}
@@ -301,7 +363,7 @@ const VideoCall = props => {
           />
         </TouchableOpacity>
         <TouchableOpacity
-          //   onPress={endCall}
+          onPress={endCall}
           style={[styles.BottomButtonStyle, {height: 60, width: 60}]}>
           <Icon
             type={'Entypo'}
@@ -311,8 +373,8 @@ const VideoCall = props => {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
-            // setMute(!mute);
-            // onChangeMic(!mute);
+            setMute(!mute);
+            onChangeMic(!mute);
           }}
           style={[styles.BottomButtonStyle, {backgroundColor: COLOR_WHITE}]}>
           <Icon
@@ -324,8 +386,8 @@ const VideoCall = props => {
 
         <TouchableOpacity
           onPress={() => {
-            // setSpeaker(!speaker);
-            // onChangeSpeaker(!speaker);
+            setSpeaker(!speaker);
+            onChangeSpeaker(!speaker);
           }}
           style={[styles.BottomButtonStyle, {backgroundColor: COLOR_WHITE}]}>
           <Icon
@@ -339,20 +401,22 @@ const VideoCall = props => {
   };
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{flex: 1, backgroundColor: COLOR_SECONDARY}}>
       {/* local video */}
+
+      <RemoteVideos />
+
+      <BottomButtons />
       <Draggable
         x={width(1)}
         y={height(5)}
         maxX={width(100)}
         maxY={height(80)}
         minX={width(0)}
-        minY={height(0)}>
+        minY={height(0)}
+        onDrag={() => {}}>
         <LocalView />
       </Draggable>
-
-      {/* <RemoteVideos /> */}
-      <BottomButtons />
     </View>
   );
 };
@@ -373,7 +437,9 @@ const styles = StyleSheet.create({
     width: width(35),
     height: height(25),
     borderWidth: width(0.5),
-    borderColor: COLOR_PRIMARY,
+    borderColor: COLOR_RED,
+    zIndex: 100,
+    backgroundColor: COLOR_SECONDARY,
   },
 });
 export default VideoCall;

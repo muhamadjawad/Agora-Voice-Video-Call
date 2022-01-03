@@ -33,17 +33,17 @@ const HomeScreen = props => {
   const [name, setName] = useState('');
 
   var radio_props = [
-    {id: 1, label: 'jawad', value: 'jawad'},
-    {id: 2, label: 'osama', value: 'osama'},
-    {id: 3, label: 'taha', value: 'taha'},
-    {id: 4, label: 'mustafa', value: 'mustufa'},
+    {id: 1, label: 'jawad', value: 1},
+    {id: 2, label: 'osama', value: 3},
+    {id: 3, label: 'taha', value: 2},
+    {id: 4, label: 'mustafa', value: 4},
   ];
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: COLOR_DARK_GRAY, //COLOR_LIGHT_GREY,
+        backgroundColor: COLOR_WHITE, //COLOR_LIGHT_GREY,
         justifyContent: 'flex-start',
       }}>
       <View
@@ -55,28 +55,31 @@ const HomeScreen = props => {
         <Text
           style={{
             alignSelf: 'center',
-            color: COLOR_WHITE,
+            color: COLOR_BLACK,
             fontSize: width(7),
             fontWeight: 'bold',
-            borderBottomWidth: 2,
+            // borderBottomWidth: 2,
           }}>
           Select Your Name
         </Text>
-        <RadioButtonRN
-          data={radio_props}
-          selectedBtn={e => {
-            console.log(e.value);
-            setName(e.value);
-          }}
-          circleSize={width(5)}
-          activeColor={COLOR_PRIMARY}
-          box={false}
-          textStyle={{
-            // fontWeight: 'bold',
-            color: COLOR_BLACK,
-            fontStyle: 'italic',
-          }}
-        />
+        <View style={{marginTop: height(5)}}>
+          <RadioButtonRN
+            data={radio_props}
+            selectedBtn={e => {
+              console.log(e.value);
+              setName(e.value);
+            }}
+            circleSize={width(5)}
+            activeColor={COLOR_PRIMARY}
+            box={false}
+            textStyle={{
+              // fontWeight: 'bold',
+              color: COLOR_PRIMARY,
+              fontStyle: 'italic',
+              fontSize: width(6),
+            }}
+          />
+        </View>
       </View>
 
       {/* <View style={{marginHorizontal: width(5), marginBottom: height(15)}}>
