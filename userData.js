@@ -20,7 +20,8 @@ export const userData = {
 };
 
 export const token =
-  '0068a61d9ce73b4418f9d41634dbb5f34c9IABHAlPDyzyQAXWG5aAxLKVBibUZmvm3y8kpxH8fPOepbm87cCcAAAAAIgDdovT0ZUbPYQQAAQBlRs9hAgBlRs9hAwBlRs9hBABlRs9h';
+  '0068a61d9ce73b4418f9d41634dbb5f34c9IACin9ZYVYZjhgUiha2PnrPWF9Oya7ZCQIkOPWdjfcupz287cCcAAAAAIgDKVPAlPyvXYQQAAQBAK9dhAgBAK9dhAwBAK9dhBABAK9dh';
 
+export const chatToken = '';
 export const channelName = 'AgoraCall';
 export const appId = '8a61d9ce73b4418f9d41634dbb5f34c9';

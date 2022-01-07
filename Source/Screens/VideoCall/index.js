@@ -32,6 +32,8 @@ import Draggable from 'react-native-draggable';
 import {COLOR_SECONDARY} from '../../Styles/ThemeConstants';
 import {token, userData, appId} from '../../../userData';
 import CustomText from '../../Components/CustomText';
+import SwipeUpDown from 'react-native-swipe-up-down';
+import ChatModal from '../Chatmodal';
 
 const channelName = 'AgoraCall';
 let _engine = '';
@@ -92,6 +94,8 @@ const VideoCall = props => {
       if (peerIds.indexOf(uid) === -1) {
         setPeerIds(prevState => [...prevState, uid]);
       }
+
+      setSomeUser(true);
     });
 
     _engine.addListener('UserMuteAudio', (uid, muted) => {
@@ -139,8 +143,9 @@ const VideoCall = props => {
   const [muteVideo, setMuteVideo] = useState(false);
   const [mute, setMute] = useState(false);
   const [speaker, setSpeaker] = useState(false);
-  const [peerIds, setPeerIds] = useState([4, 3]);
+  const [peerIds, setPeerIds] = useState([]);
   const [initialsDone, setInitialsDone] = useState(false);
+  const [someUser, setSomeUser] = useState(false);
 
   const LocalView = () => {
     // console.log('infor mation===', await _engine.getUserInfoByUid(peerIds[-1]));
@@ -183,6 +188,14 @@ const VideoCall = props => {
       setPeerIds(set);
     }
 
+    if (someUser === true && peerIds.length === 0) {
+      //means now leeave
+      console.log('no one here you should leave');
+
+      endCall();
+      // props.navigation.pop();
+    }
+
     console.log('Peer ids ===>', peerIds);
   });
 
@@ -193,7 +206,10 @@ const VideoCall = props => {
 
   const endCall = async () => {
     await _engine.leaveChannel();
-
+    try {
+      await _engine.leaveChannel();
+      await _engine.destroy();
+    } catch (error) {}
     setPeerIds([]);
     setJoinSucceed(false);
     props.navigation.pop();
@@ -417,6 +433,35 @@ const VideoCall = props => {
         onDrag={() => {}}>
         <LocalView />
       </Draggable>
+
+      {/* <SwipeUpDown
+        animation="spring"
+        // itemMini={<View style={{backgroundColor: COLOR_SECONDARY}} />} // Pass props component when collapsed
+
+        itemMini={
+          <CustomText
+            label={'a'}
+            textStyle={{alignSelf: 'center', fontSize: width(7)}}
+          />
+        }
+        itemFull={
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: COLOR_WHITE,
+              height: height(100),
+            }}>
+            <ChatModal />
+          </View>
+        } // Pass props component when show full
+        onShowMini={() => console.log('mini')}
+        onShowFull={() => console.log('full')}
+        onMoveDown={() => console.log('down')}
+        onMoveUp={() => console.log('up')}
+        disablePressToShow={false} // Press item mini to show full
+        style={{backgroundColor: COLOR_PRIMARY}} // style for swipe
+        swipeHeight={height(4)}
+      /> */}
     </View>
   );
 };
